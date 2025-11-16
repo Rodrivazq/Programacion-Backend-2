@@ -1,12 +1,57 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  nombre: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  rol: { type: String, enum: ['usuario', 'admin'], default: 'usuario' }
-}, { timestamps: true });
+// Esquema de Usuario
+// Define los campos principales y las restricciones asociadas.
+const userSchema = new mongoose.Schema(
+  {
+    nombre: {
+      type: String,
+      required: [true, "El nombre es obligatorio"],
+      trim: true,
+    },
 
-const User = mongoose.model('User', userSchema);
+    email: {
+      type: String,
+      required: [true, "El email es obligatorio"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/.+@.+\..+/, "Debe ser un email válido"],
+    },
 
-export default User;
+    password: {
+      type: String,
+      required: [true, "La contraseña es obligatoria"],
+    },
+
+    rol: {
+      type: String,
+      enum: ["usuario", "admin"],
+      default: "usuario",
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true,
+      transform: (_doc, ret) => {
+        ret.id = ret._id?.toString();
+        delete ret._id;
+        delete ret.password; // No exponer el hash de contraseña
+        return ret;
+      },
+    },
+  }
+);
+
+// Índices para optimizar búsqueda por email y rol
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ rol: 1 });
+
+// Virtual de conveniencia
+userSchema.virtual("isAdmin").get(function () {
+  return this.rol === "admin";
+});
+
+export default mongoose.model("User", userSchema);

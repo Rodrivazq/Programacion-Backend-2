@@ -1,138 +1,125 @@
 
-# 🛒 Proyecto Final Backend - Gestión de Productos y Usuarios
+# 🛒 Proyecto Final Backend — Gestión de Usuarios, Productos y Compras (Tickets)
 
-Este es un proyecto de backend desarrollado con **Node.js**, **Express**, y **MongoDB** que permite manejar autenticación de usuarios, validación de datos y CRUD de productos con control de acceso por roles.
+API REST en **Node.js + Express + MongoDB** que implementa:
+- Autenticación con **JWT**
+- Control de acceso por **roles** (usuario/admin)
+- CRUD de **productos**
+- Flujo de **compra** con **generación de tickets**
+- Arquitectura con **DAO / DTO / Repository / Services / Controllers**
 
 ---
 
-## 🚀 Tecnologías Utilizadas
-
-- Node.js
-- Express.js
-- MongoDB con Mongoose
-- JSON Web Tokens (JWT)
-- Bcrypt para hash de contraseñas
-- Express Validator para validaciones
-- Dotenv
-- CORS
+## 🚀 Tecnologías
+Node.js, Express, Mongoose (MongoDB), JWT, Bcrypt, Express-Validator, Dotenv, CORS, Helmet, Morgan, Rate Limit.
 
 ---
 
 ## 📦 Instalación
 
-1. Clona el repositorio:
-
 ```bash
 git clone https://github.com/tu_usuario/proyecto-final-backend.git
 cd proyecto-final-backend
-```
-
-2. Instala las dependencias:
-
-```bash
 npm install
 ```
 
-3. Crea un archivo `.env` con la siguiente estructura:
-
+Crea **.env** en la raíz:
 ```env
 PORT=4000
-MONGO_URL=mongodb://localhost:27017/mi_basededatos
-JWT_SECRET=miclavesecreta
+MONGO_URI=mongodb://127.0.0.1:27017/proyecto-final
+JWT_SECRET=claveultrasecreta123
 ```
 
-4. Levanta el servidor:
-
+Scripts:
 ```bash
-npm run dev
+npm run dev   # desarrollo
+npm start     # producción
 ```
 
 ---
 
-## 📂 Estructura del Proyecto
+## 🗂️ Estructura
 
 ```
 src/
-├── controllers/         # Lógica de negocio
-├── middlewares/         # Middlewares personalizados (auth, roles, validaciones)
-├── models/              # Modelos de Mongoose (User, Product)
-├── routes/              # Rutas agrupadas por recursos
-├── validators/          # Validaciones con express-validator
-├── app.js               # Configuración de middlewares y rutas
-├── server.js            # Punto de entrada del servidor
+  config/
+  controllers/
+  services/
+  repositories/
+  dao/
+  dto/
+  models/
+  middlewares/
+  validators/
+  routes/
+  app.js
+  server.js
 ```
 
 ---
 
-## 🔐 Autenticación y Autorización
-
-- Registro e inicio de sesión con JWT.
-- Rutas protegidas con middleware `verifyToken`.
-- Control de acceso por rol usando `isAdmin`.
-
----
-
-## 🧪 Validación de Datos
-
-Validación usando `express-validator` en:
-
-- Registro de usuario
-- Login
-- Crear y actualizar producto
-
----
-
-## 🧾 Rutas Principales
-
-### Auth
+## 🔐 Autenticación
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `GET /api/protegido/perfil`
 
-### Usuarios
-
-- `GET /api/usuarios` (solo admin)
-- `GET /api/usuarios/:id`
-- `PUT /api/usuarios/:id`
-- `DELETE /api/usuarios/:id` (solo admin)
-
-### Productos
-
-- `GET /api/productos`
-- `GET /api/productos/:id`
-- `POST /api/productos` (solo admin)
-- `PUT /api/productos/:id` (solo admin)
-- `DELETE /api/productos/:id` (solo admin)
+### 🧪 Testeo de Autenticación
+![Registro](./screenshots/register.png)
+![Login](./screenshots/login.png)
+![Perfil](./screenshots/perfil.png)
+![Users](./screenshots/get-users.png)
+![Get user](./screenshots/get-user.png)
+![Update user](./screenshots/actualizar-user.png)
+![Delete](./screenshots/delete-user.png)
 
 ---
 
-## 📬 Postman
+## 📦 Productos
 
-## 🧪 Pruebas con Postman
+Ejemplo:
+```json
+{
+  "title": "Auriculares Bluetooth",
+  "description": "Cancelación de ruido",
+  "price": 1200,
+  "stock": 15,
+  "image": "https://ejemplo.com/auriculares.jpg",
+  "category": "tecnologia"
+}
+```
 
-### 1. Registro de usuarios
-![Creación de usuarios](./capturas/creacion-de-usuarios.png)
-
-### 2. Login
-![Login](./capturas/login.png)
-
-### 3. Crear producto
-![Crear producto](./capturas/crear-productos.png)
-
-### 4. Listar productos
-![Listar productos](./capturas/listar-productos.png)
-
-### 5. Obtener un producto
-![Obtener un producto](./capturas/obtener-un-producto.png)
-
-### 6. Actualizar producto
-![Actualizar producto](./capturas/actualizar-un-producto.png)
-
-### 7. Eliminar producto
-![Eliminar producto](./capturas/borrar-producto.png)
+### 🧪 Testeo CRUD Productos
+![Crear](./screenshots/create-product.png)
+![Listar](./screenshots/get-products.png)
+![Get ID](./screenshots/get-product-by-id.png)
+![Actualizar](./screenshots/update-product.png)
+![Eliminar](./screenshots/delete-product.png)
 
 ---
 
-## 👨‍💻 Autor
+## 🧺 Carrito + 💳 Compras (Tickets)
 
-Rodrigo Vázquez – [GitHub](https://github.com/Rodrivazq)
+### Flujo:
+- Verifica stock
+- Descuenta stock
+- Genera ticket
+- Deja rechazados en carrito (si hay)
+
+### 🧪 Testeo de Compra / Tickets
+![Carrito antes](./screenshots/cart-before.png)
+![Agregar al carrito](./screenshots/cart-add-product.png)
+![Compra](./screenshots/purchase.png)
+![Ticket generado](./screenshots/ticket.png)
+
+---
+
+## 🧯 Buenas Prácticas
+- No subir `.env`
+- Manejo uniforme de errores
+- DTO evita exponer datos sensibles
+
+---
+
+## 👤 Autor
+Rodrigo Vázquez — https://github.com/Rodrivazq

@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Entornos
+.env
+.env.local
+
+# Base de datos local (si usás alguna)
+*.sqlite
+*.db
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Otros
+dist/
+coverage/

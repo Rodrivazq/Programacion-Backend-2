@@ -1,12 +1,58 @@
-import { body } from 'express-validator';
+import { body, validationResult } from "express-validator";
 
+// Validación para registro
 export const registerValidator = [
-  body('nombre', 'El nombre es obligatorio').notEmpty(),
-  body('email', 'El email debe ser válido').isEmail(),
-  body('password', 'La contraseña debe tener al menos 6 caracteres').isLength({ min: 6 }),
+  body("nombre")
+    .trim()
+    .notEmpty()
+    .withMessage("El nombre es obligatorio"),
+
+  body("email")
+    .isEmail()
+    .withMessage("El email debe ser válido"),
+
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("La contraseña debe tener al menos 6 caracteres"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().map((err) => ({
+        campo: err.param,
+        mensaje: err.msg,
+      }));
+      return res.status(400).json({
+        status: "error",
+        errors: formatted,
+      });
+    }
+    next();
+  },
 ];
 
+// Validación para login
 export const loginValidator = [
-  body('email', 'El email debe ser válido').isEmail(),
-  body('password', 'La contraseña es obligatoria').notEmpty(),
+  body("email")
+    .isEmail()
+    .withMessage("El email debe ser válido"),
+
+  body("password")
+    .notEmpty()
+    .withMessage("La contraseña es obligatoria"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().map((err) => ({
+        campo: err.param,
+        mensaje: err.msg,
+      }));
+      return res.status(400).json({
+        status: "error",
+        errors: formatted,
+      });
+    }
+    next();
+  },
 ];

@@ -1,48 +1,99 @@
-import User from '../models/user.model.js';
+import mongoose from "mongoose";
+import UserRepository from "../repositories/userRepository.js";
+
+const users = new UserRepository();
+
+/**
+ * Controlador de Usuarios.
+ * Maneja las operaciones CRUD y delega la lógica en el repositorio.
+ */
 
 // Obtener todos los usuarios
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (_req, res) => {
   try {
-    const users = await User.find().select('-password');
-    res.json(users);
+    const list = await users.getAll();
+    return res.json(list);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener usuarios' });
+    console.error("Error al obtener usuarios:", error.message);
+    return res.status(500).json({
+      message: "Error al obtener usuarios",
+      error: error.message,
+    });
   }
 };
 
-// Obtener usuario por ID
+// Obtener un usuario por ID
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
-    res.json(user);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
+    const dto = await users.getById(id);
+    if (!dto) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.json(dto);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener el usuario' });
+    console.error("Error al obtener usuario:", error.message);
+    return res.status(500).json({
+      message: "Error al obtener el usuario",
+      error: error.message,
+    });
   }
 };
 
-// Actualizar usuario
+// Actualizar un usuario
 export const updateUser = async (req, res) => {
   try {
+    const { id } = req.params;
     const { nombre, email } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      { nombre, email },
-      { new: true }
-    ).select('-password');
 
-    res.json(updatedUser);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
+    const dto = await users.update(id, { nombre, email });
+    if (!dto) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.json({
+      message: "Usuario actualizado correctamente",
+      usuario: dto,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar usuario' });
+    console.error("Error al actualizar usuario:", error.message);
+    return res.status(500).json({
+      message: "Error al actualizar usuario",
+      error: error.message,
+    });
   }
 };
 
-// Eliminar usuario
+// Eliminar un usuario
 export const deleteUser = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Usuario eliminado' });
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
+    const ok = await users.delete(id);
+    if (!ok) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    return res.json({ message: "Usuario eliminado correctamente" });
   } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar usuario' });
+    console.error("Error al eliminar usuario:", error.message);
+    return res.status(500).json({
+      message: "Error al eliminar usuario",
+      error: error.message,
+    });
   }
 };

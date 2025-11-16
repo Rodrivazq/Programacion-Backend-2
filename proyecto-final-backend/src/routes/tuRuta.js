@@ -1,5 +1,14 @@
-import { verifyToken } from '../middlewares/verifyToken.js'
+import { Router } from "express";
+import { verifyToken } from "../middlewares/verifyToken.js";
 
-router.get('/privado', verifyToken, (req, res) => {
-  res.json({ message: 'Accediste a una ruta protegida', user: req.user })
-})
+const router = Router();
+
+// GET /api/privado
+router.get("/privado", verifyToken, (req, res) => {
+  res.json({
+    message: "Accediste a una ruta protegida",
+    user: req.user,
+  });
+});
+
+export default router;

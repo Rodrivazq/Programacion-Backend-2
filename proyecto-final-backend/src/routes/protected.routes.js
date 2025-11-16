@@ -1,12 +1,14 @@
-import { Router } from 'express';
-import { verifyToken } from '../middlewares/verifyToken.js';
+import { Router } from "express";
+import { verifyToken } from "../middlewares/verifyToken.js";
 
 const router = Router();
 
-router.get('/perfil', verifyToken, (req, res) => {
+// GET /api/protegido/perfil
+// Devuelve los datos del usuario autenticado.
+router.get("/perfil", verifyToken, (req, res) => {
   res.json({
-    message: 'Accediste a una ruta protegida 🔒',
-    user: req.user
+    message: "Acceso permitido",
+    user: req.user,
   });
 });
 

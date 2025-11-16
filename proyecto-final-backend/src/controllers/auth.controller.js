@@ -1,79 +1,104 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-import User from '../models/user.model.js';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import UserRepository from "../repositories/userRepository.js";
+import UserDto from "../dto/userDTO.js";
 
-const SECRET = process.env.JWT_SECRET;
+const users = new UserRepository();
 
-// 📌 Registrar un nuevo usuario
+/**
+ * Controlador de autenticación
+ * Rutas:
+ *  - POST /api/auth/register
+ *  - POST /api/auth/login
+ */
+
+// Registrar un nuevo usuario
 export const register = async (req, res) => {
   try {
     const { nombre, email, password, rol } = req.body;
 
-    // Verificar si el usuario ya existe
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
+    // Validación básica de campos requeridos
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ message: "Faltan campos requeridos" });
     }
 
-    // Hashear la contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Verificar si ya existe un usuario con ese email
+    const existing = await users.getByEmail(email);
+    if (existing) {
+      return res.status(400).json({ message: "El usuario ya existe" });
+    }
 
-    // Crear nuevo usuario
-    const newUser = new User({
+    // Hashear contraseña
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS ?? "10", 10);
+    const hashed = await bcrypt.hash(password, rounds);
+
+    // Crear usuario
+    const created = await users.create({
       nombre,
       email,
-      password: hashedPassword,
-      rol: rol || 'usuario' // Rol por defecto: "usuario"
+      password: hashed,
+      rol: rol || "usuario",
     });
 
-    await newUser.save();
+    const dto = new UserDto(created);
 
-    res.status(201).json({ message: 'Usuario registrado correctamente' });
+    return res.status(201).json({
+      message: "Usuario registrado correctamente",
+      user: dto,
+    });
   } catch (error) {
-    console.error('❌ Error en registro:', error);
-    res.status(500).json({ message: 'Error al registrar usuario', error });
+    console.error("Error en registro:", error);
+    return res.status(500).json({ message: "Error al registrar usuario" });
   }
 };
 
-// 📌 Iniciar sesión
+// Iniciar sesión
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Buscar usuario
-    const user = await User.findOne({ email });
+    // Validación básica
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email y contraseña son obligatorios" });
+    }
+
+    // Buscar usuario por email
+    const user = await users.getByEmail(email);
     if (!user) {
-      return res.status(400).json({ message: 'Credenciales inválidas (usuario)' });
+      return res.status(400).json({ message: "Credenciales inválidas" });
     }
 
-    // Verificar contraseña
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      return res.status(400).json({ message: 'Credenciales inválidas (contraseña)' });
+    // Comparar contraseña
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return res.status(400).json({ message: "Credenciales inválidas" });
     }
 
-    // Generar token JWT
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, rol: user.rol },
-      SECRET,
-      { expiresIn: '1d' }
-    );
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res
+        .status(500)
+        .json({ message: "Falta JWT_SECRET en las variables de entorno" });
+    }
 
-    // Retornar token y datos de usuario
-    res.json({
+    // Armamos el payload con el id del usuario
+    const payload = {
+      id: user._id.toString(),
+      email: user.email,
+      rol: user.rol,
+    };
+
+    const token = jwt.sign(payload, secret, { expiresIn: "1d" });
+    const dto = new UserDto(user);
+
+    return res.json({
+      message: "Inicio de sesión exitoso",
       token,
-      user: {
-        id: user._id,
-        nombre: user.nombre,
-        email: user.email,
-        rol: user.rol
-      }
+      user: dto,
     });
   } catch (error) {
-    console.error('❌ Error en login:', error);
-    res.status(500).json({ message: 'Error al iniciar sesión', error });
+    console.error("Error en login:", error);
+    return res.status(500).json({ message: "Error al iniciar sesión" });
   }
 };

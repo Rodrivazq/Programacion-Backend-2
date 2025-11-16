@@ -1,63 +1,98 @@
-import { check, validationResult } from 'express-validator';
+import { check, validationResult } from "express-validator";
 
-// 📦 Validación para crear producto
+/**
+ * Validadores para creación y actualización de productos.
+ * Se utilizan en:
+ *   - POST /api/productos
+ *   - PUT  /api/productos/:id
+ */
+
+// Validación para creación
 export const validateCreateProduct = [
-  check('nombre')
+  check("title")
+    .trim()
     .notEmpty()
-    .withMessage('El nombre del producto es requerido'),
+    .withMessage("El título del producto es requerido"),
 
-  check('precio')
+  check("description")
+    .trim()
     .notEmpty()
-    .withMessage('El precio es obligatorio')
+    .withMessage("La descripción es requerida"),
+
+  check("price")
+    .notEmpty()
+    .withMessage("El precio es obligatorio")
     .isNumeric()
-    .withMessage('El precio debe ser un número'),
+    .withMessage("El precio debe ser un número válido"),
 
-  check('descripcion')
+  check("stock")
+    .optional()
+    .isNumeric()
+    .withMessage("El stock debe ser un número válido"),
+
+  check("category")
+    .trim()
     .notEmpty()
-    .withMessage('La descripción es requerida'),
+    .withMessage("La categoría es requerida"),
 
-  check('categoria')
-    .notEmpty()
-    .withMessage('La categoría es requerida'),
-
-  // Middleware de validación
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const formatted = errors.array().map((err) => ({
+        campo: err.param,
+        mensaje: err.msg,
+      }));
+      return res.status(400).json({
+        status: "error",
+        errors: formatted,
+      });
     }
     next();
-  }
+  },
 ];
 
-// 🛠️ Validación para actualizar producto (campos opcionales)
+// Validación para actualización
 export const validateUpdateProduct = [
-  check('nombre')
+  check("title")
     .optional()
+    .trim()
     .notEmpty()
-    .withMessage('El nombre no puede estar vacío'),
+    .withMessage("El título no puede estar vacío"),
 
-  check('precio')
+  check("description")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("La descripción no puede estar vacía"),
+
+  check("price")
     .optional()
     .isNumeric()
-    .withMessage('El precio debe ser un número'),
+    .withMessage("El precio debe ser un número válido"),
 
-  check('descripcion')
+  check("stock")
     .optional()
-    .notEmpty()
-    .withMessage('La descripción no puede estar vacía'),
+    .isNumeric()
+    .withMessage("El stock debe ser un número válido"),
 
-  check('categoria')
+  check("category")
     .optional()
+    .trim()
     .notEmpty()
-    .withMessage('La categoría no puede estar vacía'),
+    .withMessage("La categoría no puede estar vacía"),
 
-  // Middleware de validación
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const formatted = errors.array().map((err) => ({
+        campo: err.param,
+        mensaje: err.msg,
+      }));
+      return res.status(400).json({
+        status: "error",
+        errors: formatted,
+      });
     }
     next();
-  }
+  },
 ];
